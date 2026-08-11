@@ -1,57 +1,124 @@
-# Sample Hardhat 3 Project (`node:test` and `viem`)
+# TRACE — Verifiable Autonomy for AI Agents
 
-This project showcases a Hardhat 3 project using the native Node.js test runner (`node:test`) and the `viem` library for Ethereum interactions.
+> "When human attention fades, AI authority fades."
 
-To learn more about Hardhat 3, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3](https://hardhat.org/hardhat3-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+TRACE is a security infrastructure layer that bridges autonomous AI actions and blockchain-enforced permissions. It guarantees that AI agents only execute sensitive operations when human authorization is active, automatically decaying agent authority over time until the human checks in again (heartbeat).
 
-## Project Overview
+---
 
-This example project includes:
+## Architecture Flow
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+```
+                    USER
+                      │
+                      ▼
+                ┌───────────┐
+                │   MIRA    │
+                │ AI Agent  │
+                └─────┬─────┘
+                      │
+                 Natural Language
+                      │
+                      ▼
+                ┌───────────┐
+                │    LLM    │
+                │ Classifier│
+                └─────┬─────┘
+                      │
+                 Structured Action
+                      │
+                      ▼
+             ┌──────────────────┐
+             │ TRACE Contract   │
+             │                  │
+             │ Permission       │
+             │ Action Check     │
+             └────────┬─────────┘
+                      │
+                 ALLOW / BLOCK
+                  /         \
+                 /           \
+              ALLOW          BLOCK
+                │               │
+                ▼               ▼
+            Execute          Reject
+                │
+                ▼
+            Attestation
+                │
+                ▼
+           Blockchain
+```
 
-## Usage
+---
 
-### Running Tests
+## API Endpoints
 
-To run all the tests in the project, execute the following command:
+The TRACE API is exposed via a local Node.js Express server running on port `3001` (by default):
 
-```shell
+* **`GET /api/trace/status`**: Returns owner/agent addresses, network, contract address, current permission level, last heartbeat timestamp, and inactive duration.
+* **`POST /api/trace/heartbeat`**: Signs and executes the contract owner's `heartbeat()` transaction to restore permissions to `FULL`.
+* **`POST /api/mira/request`**: Submits a natural-language request to the Mira agent. Mira classifies the request, checks permissions via the contract, simulates execution if allowed, and registers an on-chain attestation.
+* **`GET /api/trace/attestations`**: Queries `ActionAttested` events directly from the blockchain logs.
+
+---
+
+## Setup & Running Locally
+
+### 1. Configure Environment Variables
+Copy `.env.example` to `.env` and fill in the parameters:
+```bash
+cp .env.example .env
+```
+
+Environment variables:
+* `PRIVATE_KEY`: Deployment private key (for Polygon Amoy deployment).
+* `POLYGON_AMOY_RPC_URL`: RPC provider URL for Polygon Amoy.
+* `TRACE_AGENT_ADDRESS`: The wallet address of the AI Agent (MetaMask or Account #1).
+* `TRACE_CONTRACT_ADDRESS`: The address of the deployed contract.
+* `LLM_API_KEY`: Google Gemini API Key (Optional. Falls back to `MockLlmParser` if not set).
+* `LLM_MODEL`: LLM model name (default: `gemini-1.5-flash`).
+
+### 2. Run Local Blockchain & Deploy
+Start a local Hardhat JSON-RPC network node:
+```bash
+npx hardhat node
+```
+
+In a new terminal window, deploy the TRACE smart contract to localhost:
+```bash
+$env:TRACE_AGENT_ADDRESS="0x70997970C51812dc3A010C7d01b50e0d17dc79C8" # Hardhat Account #1
+npx hardhat run scripts/deployTrace.js --network localhost
+```
+
+Update your `.env` file with the deployed `Contract Address` output.
+
+### 3. Start the API Server
+Start the Express server on port 3001:
+```bash
+npx hardhat run server.js --network localhost
+```
+
+---
+
+## Polygon Amoy Testnet Deployment
+
+To deploy to the Polygon Amoy testnet:
+1. Configure your `PRIVATE_KEY` and `POLYGON_AMOY_RPC_URL` using Hardhat variables:
+   ```bash
+   npx hardhat vars set PRIVATE_KEY
+   npx hardhat vars set POLYGON_AMOY_RPC_URL
+   ```
+2. Run the deployment script:
+   ```bash
+   npx hardhat run scripts/deployTrace.js --network polygonAmoy
+   ```
+
+---
+
+## Testing
+
+To run the complete test suite (70 tests including Solidity, Agent unit tests, LLM mock parsing, and integration security tests):
+```bash
 npx hardhat test
-```
-
-You can also selectively run the Solidity or `node:test` tests:
-
-```shell
-npx hardhat test solidity
-npx hardhat test nodejs
-```
-
-### Make a deployment to Sepolia
-
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
-
-To run the deployment to a local chain:
-
-```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
-```
-
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
-
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
-
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
-
-```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
-```
-
-After setting the variable, you can run the deployment with the Sepolia network:
-
-```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
 ```

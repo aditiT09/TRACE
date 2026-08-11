@@ -78,7 +78,7 @@ export class MiraAgent {
         const log = this.executeSimulation(action);
 
         // Submit the attestation to the blockchain
-        const transactionHash = await this.traceClient.attestAction(action);
+        const attestationResult = await this.traceClient.attestAction(action);
 
         return {
             success: true,
@@ -89,7 +89,7 @@ export class MiraAgent {
             status: "VERIFIED",
             message: "Action executed and attested on-chain",
             executionLog: log,
-            transactionHash: transactionHash
+            transactionHash: attestationResult.transactionHash
         };
     }
 

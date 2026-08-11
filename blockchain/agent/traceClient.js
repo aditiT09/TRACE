@@ -1,3 +1,5 @@
+import { parseAbiItem } from "viem";
+
 /**
  * Trace Client
  * Wrapper around the TracePermissions contract using Viem.
@@ -81,10 +83,56 @@ export class TraceClient {
                 ],
                 "stateMutability": "view",
                 "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "lastHeartbeat",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "agent",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
             }
         ];
 
         this.permissions = ["LOCKED", "READ_ONLY", "RESTRICTED", "FULL"];
+    }
+
+    /**
+     * Gets the contract address.
+     */
+    getContractAddress() {
+        return this.contractAddress;
     }
 
     /**
@@ -113,6 +161,7 @@ export class TraceClient {
 
     /**
      * Attests a completed action on-chain. MUST be called by the agent wallet.
+     * Submits transaction, waits for receipt, verifies status, returns hash and block number.
      */
     async attestAction(action) {
         if (!this.agentWallet) {
@@ -125,12 +174,20 @@ export class TraceClient {
             args: [action],
             account: this.agentWallet.account
         });
-        await this.publicClient.waitForTransactionReceipt({ hash });
-        return hash;
+        const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
+        if (receipt.status !== "success") {
+            throw new Error("TRANSACTION_FAILED");
+        }
+        return {
+            success: true,
+            transactionHash: hash,
+            blockNumber: Number(receipt.blockNumber)
+        };
     }
 
     /**
      * Owner heartbeat function to restore full permission. MUST be called by the owner wallet.
+     * Submits transaction, waits for receipt, verifies status, returns hash and block number.
      */
     async heartbeat() {
         if (!this.ownerWallet) {
@@ -142,18 +199,75 @@ export class TraceClient {
             functionName: "heartbeat",
             account: this.ownerWallet.account
         });
-        await this.publicClient.waitForTransactionReceipt({ hash });
-        return hash;
+        const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
+        if (receipt.status !== "success") {
+            throw new Error("TRANSACTION_FAILED");
+        }
+        return {
+            success: true,
+            transactionHash: hash,
+            blockNumber: Number(receipt.blockNumber)
+        };
     }
 
     /**
      * Returns inactive time in seconds since the last heartbeat.
      */
     async getInactiveTime() {
-        return await this.publicClient.readContract({
+        const time = await this.publicClient.readContract({
             address: this.contractAddress,
             abi: this.abi,
             functionName: "getInactiveTime"
+        });
+        return Number(time);
+    }
+
+    /**
+     * Returns the actual last heartbeat timestamp from the contract.
+     */
+    async getLastHeartbeat() {
+        const lastHb = await this.publicClient.readContract({
+            address: this.contractAddress,
+            abi: this.abi,
+            functionName: "lastHeartbeat"
+        });
+        return Number(lastHb);
+    }
+
+    /**
+     * Returns name and chain ID of the connected network.
+     */
+    async getNetworkInfo() {
+        const chainId = await this.publicClient.getChainId();
+        return {
+            name: this.publicClient.chain?.name || `Chain ID ${chainId}`,
+            chainId: Number(chainId)
+        };
+    }
+
+    /**
+     * Queries blockchain logs for verified ActionAttested events.
+     */
+    async getAttestations() {
+        const actionAttestedEvent = parseAbiItem(
+            "event ActionAttested(address indexed agent, string action, uint8 permission, uint256 timestamp)"
+        );
+
+        const logs = await this.publicClient.getLogs({
+            address: this.contractAddress,
+            event: actionAttestedEvent,
+            fromBlock: 0n
+        });
+
+        return logs.map(log => {
+            return {
+                agent: log.args.agent,
+                action: log.args.action,
+                permission: this.permissions[log.args.permission],
+                timestamp: Number(log.args.timestamp),
+                transactionHash: log.transactionHash,
+                blockNumber: Number(log.blockNumber)
+            };
         });
     }
 }
