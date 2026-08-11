@@ -4,11 +4,12 @@ import { parseAction } from "./actionParser.js";
  * Mira AI Agent - Client Operations Agent
  */
 export class MiraAgent {
-    constructor(traceClient) {
+    constructor(traceClient, llmParser = null) {
         if (!traceClient) {
             throw new Error("TraceClient instance is required for MiraAgent");
         }
         this.traceClient = traceClient;
+        this.llmParser = llmParser;
     }
 
     /**
@@ -16,7 +17,28 @@ export class MiraAgent {
      * Enforces the TRACE security flow.
      */
     async processRequest(request) {
-        const action = parseAction(request);
+        let action;
+        let confidence = 1.0;
+
+        if (this.llmParser) {
+            try {
+                const parseResult = await this.llmParser.parseUserRequest(request);
+                action = parseResult.action;
+                confidence = parseResult.confidence;
+            } catch (error) {
+                // If LLM API is unavailable, fail-safe. Do not execute or bypass.
+                return {
+                    success: false,
+                    agent: "Mira",
+                    request: request,
+                    status: "LLM_UNAVAILABLE",
+                    message: "LLM API is currently unavailable."
+                };
+            }
+        } else {
+            // Fallback to deterministic parser for backward compatibility
+            action = parseAction(request);
+        }
 
         if (action === "UNKNOWN_ACTION") {
             return {
@@ -25,7 +47,7 @@ export class MiraAgent {
                 request: request,
                 action: "UNKNOWN_ACTION",
                 status: "UNKNOWN",
-                message: "Unknown action request"
+                message: "Mira could not map the request to a supported action."
             };
         }
 
