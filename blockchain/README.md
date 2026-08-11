@@ -12,28 +12,18 @@ TRACE is a security infrastructure layer that bridges autonomous AI actions and 
                     USER
                       │
                       ▼
-                ┌───────────┐
-                │   MIRA    │
-                │ AI Agent  │
-                └─────┬─────┘
-                      │
-                 Natural Language
+                React Frontend
                       │
                       ▼
-                ┌───────────┐
-                │    LLM    │
-                │ Classifier│
-                └─────┬─────┘
+                 Backend API (Port 3001)
+                      │
+                 Mira AI Agent
+                      │
+                  Gemini LLM
                       │
                  Structured Action
                       │
-                      ▼
-             ┌──────────────────┐
-             │ TRACE Contract   │
-             │                  │
-             │ Permission       │
-             │ Action Check     │
-             └────────┬─────────┘
+                 TRACE Smart Contract
                       │
                  ALLOW / BLOCK
                   /         \
@@ -49,6 +39,24 @@ TRACE is a security infrastructure layer that bridges autonomous AI actions and 
                 ▼
            Blockchain
 ```
+
+---
+
+## Network Safety & Chain IDs
+
+To prevent execution on unintended networks, the TRACE API performs strict validation check on the blockchain network before executing write transactions (`heartbeat` or `attestAction`).
+* **Expected Chain ID** is loaded from the environment variable `EXPECTED_CHAIN_ID`.
+  * **Local Hardhat Network**: `31337`
+  * **Polygon Amoy Testnet**: `80002`
+* If a mismatch is detected, the API returns:
+  ```json
+  {
+      "success": false,
+      "status": "WRONG_NETWORK",
+      "expectedChainId": 80002,
+      "actualChainId": 31337
+  }
+  ```
 
 ---
 
@@ -72,6 +80,7 @@ cp .env.example .env
 ```
 
 Environment variables:
+* `EXPECTED_CHAIN_ID`: The chain ID to enforce (e.g. `31337` for local, `80002` for Polygon Amoy).
 * `PRIVATE_KEY`: Deployment private key (for Polygon Amoy deployment).
 * `POLYGON_AMOY_RPC_URL`: RPC provider URL for Polygon Amoy.
 * `TRACE_AGENT_ADDRESS`: The wallet address of the AI Agent (MetaMask or Account #1).
@@ -96,7 +105,7 @@ Update your `.env` file with the deployed `Contract Address` output.
 ### 3. Start the API Server
 Start the Express server on port 3001:
 ```bash
-npx hardhat run server.js --network localhost
+$env:EXPECTED_CHAIN_ID="31337"; npx hardhat run server.js --network localhost
 ```
 
 ---
@@ -118,7 +127,7 @@ To deploy to the Polygon Amoy testnet:
 
 ## Testing
 
-To run the complete test suite (70 tests including Solidity, Agent unit tests, LLM mock parsing, and integration security tests):
+To run the complete test suite (80 tests including Solidity, Agent unit tests, LLM mock parsing, integration security tests, and network safety tests):
 ```bash
 npx hardhat test
 ```

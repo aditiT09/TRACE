@@ -1,6 +1,6 @@
 # TRACE - Frontend API Integration Specification
 
-This documentation defines the API endpoints and configurations exposed by the TRACE backend for the React frontend developer.
+This documentation defines the API endpoints, error structures, and network safety behaviors exposed by the TRACE backend for the React frontend developer.
 
 ---
 
@@ -13,11 +13,25 @@ The frontend React application requires the following environment variables:
 VITE_API_URL=http://localhost:3001
 
 # Address of the TracePermissions smart contract deployed on local/testnet node
-VITE_TRACE_CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
+VITE_TRACE_CONTRACT_ADDRESS=0xe7f1725e7734ce288f8367e1bb143e90bb3f0512
 
 # RPC endpoint URL (e.g. Local Hardhat node or Polygon Amoy provider URL)
 VITE_RPC_URL=http://127.0.0.1:8545
 ```
+
+---
+
+## Network Validation Protocol
+
+The TRACE backend strictly validates that it is connected to the expected network configuration before executing any write transactions (`heartbeat` or `attestAction`).
+* **Local EDR Node Chain ID**: `31337`
+* **Polygon Amoy Testnet Chain ID**: `80002`
+
+If the backend detects a network mismatch (e.g. the server expects Polygon Amoy but is connected to localhost), write endpoints will reject the request with a **`400 Bad Request`** status and a `WRONG_NETWORK` error code.
+
+### UI Error Handling Guidelines
+* **Do NOT attempt to bypass or override this validation** from the frontend client.
+* **UI Behavior**: If the frontend receives a `WRONG_NETWORK` status code, it must display a prominent error banner or modal informing the user of the network mismatch (e.g. "Network Mismatch: Please switch your wallet/provider to Polygon Amoy (Chain ID 80002)").
 
 ---
 
@@ -34,15 +48,15 @@ Retrieves current blockchain authority states, active levels, and timers.
 * **Success Response (200 OK)**:
   ```json
   {
-      "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-      "agent": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-      "permission": "FULL",
-      "permissionValue": 3,
-      "lastHeartbeat": "2026-08-11T14:35:27.000Z",
-      "inactiveTime": "12",
-      "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "network": "Local EDR Node"
-    }
+    "owner": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+    "agent": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+    "permission": "FULL",
+    "permissionValue": 3,
+    "lastHeartbeat": "2026-08-11T17:54:18.000Z",
+    "inactiveTime": "12",
+    "contractAddress": "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512",
+    "network": "Hardhat"
+  }
   ```
 * **Error Response (500 Internal Server Error)**:
   ```json
@@ -64,11 +78,20 @@ Executes the `heartbeat()` transaction on the smart contract from the owner's ac
   ```json
   {
     "success": true,
-    "transactionHash": "0x40a324317f223789b59d940742914c85c0903e949bbd4efb464c579352862a9b",
-    "blockNumber": 142
+    "transactionHash": "0xbb1fc48f5e0c9fd944e3c74ea8f11fbe02d43932c14962d374cc2fb0256fe963",
+    "blockNumber": 3
   }
   ```
-* **Error Response (500 Internal Server Error)**:
+* **Error Response - Network Mismatch (400 Bad Request)**:
+  ```json
+  {
+    "success": false,
+    "status": "WRONG_NETWORK",
+    "expectedChainId": 80002,
+    "actualChainId": 31337
+  }
+  ```
+* **Error Response - Transaction Failure (500 Internal Server Error)**:
   ```json
   {
     "success": false,
@@ -100,7 +123,7 @@ Processes a natural-language query via the Mira client-operations agent. Mira cl
     "status": "VERIFIED",
     "message": "Action executed and attested on-chain",
     "executionLog": "Mira sent the client message.",
-    "transactionHash": "0x060bc561ba82dc55fe7679967dd1b9d31fd45376b2ed8ea92fcc0f0693a6831f"
+    "transactionHash": "0xdbb0a759d3fd9dd73c50fb5f7b2ec71b8ae45fbcdc6f56d496b9da6b30e96010"
   }
   ```
 * **Success Response - Action Blocked by TRACE (200 OK)**:
@@ -116,15 +139,13 @@ Processes a natural-language query via the Mira client-operations agent. Mira cl
     "requiredPermission": "FULL"
   }
   ```
-* **Success Response - Unknown Action (200 OK)**:
+* **Error Response - Network Mismatch (400 Bad Request)**:
   ```json
   {
     "success": false,
-    "agent": "Mira",
-    "request": "sing a song",
-    "action": "UNKNOWN_ACTION",
-    "status": "UNKNOWN",
-    "message": "Mira could not map the request to a supported action."
+    "status": "WRONG_NETWORK",
+    "expectedChainId": 80002,
+    "actualChainId": 31337
   }
   ```
 * **Error/Fail-safe Response - LLM API Failure (200 OK)**:
@@ -151,20 +172,12 @@ Reads historical `ActionAttested` logs directly from the blockchain contract eve
   ```json
   [
     {
-      "agent": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "agent": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
       "action": "SEND_MESSAGE",
       "permission": "FULL",
-      "timestamp": 1783849200,
-      "transactionHash": "0x060bc561ba82dc55fe7679967dd1b9d31fd45376b2ed8ea92fcc0f0693a6831f",
-      "blockNumber": 140
-    },
-    {
-      "agent": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-      "action": "SCHEDULE_MEETING",
-      "permission": "RESTRICTED",
-      "timestamp": 1783849321,
-      "transactionHash": "0x080dcdbb12be581ae29ec5523221ca82801e50cea1510c53f109f21f375cc746",
-      "blockNumber": 141
+      "timestamp": 1786470851,
+      "transactionHash": "0xdbb0a759d3fd9dd73c50fb5f7b2ec71b8ae45fbcdc6f56d496b9da6b30e96010",
+      "blockNumber": 3
     }
   ]
   ```

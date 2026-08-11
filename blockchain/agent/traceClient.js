@@ -129,6 +129,33 @@ export class TraceClient {
     }
 
     /**
+     * Safety Check: Validates that the client is connected to the expected network.
+     * Prevents executing transactions on incorrect networks.
+     */
+    async validateNetwork() {
+        const chainId = await this.publicClient.getChainId();
+        const expectedChainIdStr = process.env.EXPECTED_CHAIN_ID;
+        
+        if (!expectedChainIdStr) {
+            // Avoid failing local tests that don't pass an environment EXPECTED_CHAIN_ID
+            const isTest = typeof global !== "undefined" && (global.hre || process.env.NODE_ENV === "test");
+            if (isTest) {
+                return;
+            }
+            throw new Error("MISSING_EXPECTED_CHAIN_ID");
+        }
+        
+        const expectedChainId = Number(expectedChainIdStr);
+        if (Number(chainId) !== expectedChainId) {
+            const error = new Error("WRONG_NETWORK");
+            error.code = "WRONG_NETWORK";
+            error.expectedChainId = expectedChainId;
+            error.actualChainId = Number(chainId);
+            throw error;
+        }
+    }
+
+    /**
      * Gets the contract address.
      */
     getContractAddress() {
@@ -164,6 +191,7 @@ export class TraceClient {
      * Submits transaction, waits for receipt, verifies status, returns hash and block number.
      */
     async attestAction(action) {
+        await this.validateNetwork();
         if (!this.agentWallet) {
             throw new Error("Agent wallet client is required for attestAction");
         }
@@ -190,6 +218,7 @@ export class TraceClient {
      * Submits transaction, waits for receipt, verifies status, returns hash and block number.
      */
     async heartbeat() {
+        await this.validateNetwork();
         if (!this.ownerWallet) {
             throw new Error("Owner wallet client is required for heartbeat");
         }

@@ -48,6 +48,7 @@ async function init() {
 /**
  * GET /api/trace/status
  * Exposes current permissions, heartbeat, and network configuration stats.
+ * SECURITY: Never returns private keys, mnemonics, or Gemini API keys.
  */
 app.get("/api/trace/status", async (req, res) => {
     try {
@@ -81,6 +82,7 @@ app.get("/api/trace/status", async (req, res) => {
 /**
  * POST /api/trace/heartbeat
  * Triggers the owner check-in heartbeat transaction on-chain.
+ * SECURITY: Handles network safety validations.
  */
 app.post("/api/trace/heartbeat", async (req, res) => {
     try {
@@ -88,6 +90,14 @@ app.post("/api/trace/heartbeat", async (req, res) => {
         res.json(result);
     } catch (error) {
         console.error("POST /api/trace/heartbeat error:", error);
+        if (error.code === "WRONG_NETWORK" || error.message === "WRONG_NETWORK") {
+            return res.status(400).json({
+                success: false,
+                status: "WRONG_NETWORK",
+                expectedChainId: error.expectedChainId,
+                actualChainId: error.actualChainId
+            });
+        }
         res.status(500).json({ success: false, status: "TRANSACTION_FAILED" });
     }
 });
@@ -95,6 +105,7 @@ app.post("/api/trace/heartbeat", async (req, res) => {
 /**
  * POST /api/mira/request
  * Evaluates natural-language request via Mira agent, checks permission, and signs attestation.
+ * SECURITY: Handles network safety validations.
  */
 app.post("/api/mira/request", async (req, res) => {
     const { request } = req.body;
@@ -107,6 +118,14 @@ app.post("/api/mira/request", async (req, res) => {
         res.json(result);
     } catch (error) {
         console.error("POST /api/mira/request error:", error);
+        if (error.code === "WRONG_NETWORK" || error.message === "WRONG_NETWORK") {
+            return res.status(400).json({
+                success: false,
+                status: "WRONG_NETWORK",
+                expectedChainId: error.expectedChainId,
+                actualChainId: error.actualChainId
+            });
+        }
         res.status(500).json({ success: false, error: error.message || "FAILED_TO_PROCESS_REQUEST" });
     }
 });
