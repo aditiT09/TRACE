@@ -16,10 +16,11 @@ export class MiraAgent {
      * Processes a natural-language request from the user.
      * Enforces the TRACE security flow.
      */
-    async processRequest(request) {
+    async processRequest(request, clientSuppliedPermission = null) {
         let action;
         let confidence = 1.0;
 
+        // 1. LLM classification pass
         if (this.llmParser) {
             try {
                 const parseResult = await this.llmParser.parseUserRequest(request);
@@ -29,10 +30,7 @@ export class MiraAgent {
                 // If LLM API is unavailable, fail-safe. Do not execute or bypass.
                 return {
                     success: false,
-                    agent: "Mira",
-                    request: request,
-                    status: "LLM_UNAVAILABLE",
-                    message: "LLM API is currently unavailable."
+                    status: "LLM_UNAVAILABLE"
                 };
             }
         } else {
@@ -40,7 +38,9 @@ export class MiraAgent {
             action = parseAction(request);
         }
 
-        if (action === "UNKNOWN_ACTION") {
+        // 2. Action Validation (Harden LLM Actions)
+        const allowedActions = ["SEND_MESSAGE", "SCHEDULE_MEETING", "APPROVE_INVOICE"];
+        if (!allowedActions.includes(action)) {
             return {
                 success: false,
                 agent: "Mira",
@@ -51,17 +51,29 @@ export class MiraAgent {
             };
         }
 
-        // SECURITY: Query smart contract for current permission and allowance
-        const permission = await this.traceClient.getPermission();
-        const allowed = await this.traceClient.canPerformAction(action);
+        // 3. Smart contract queries with TRACE_UNAVAILABLE fail-safe
+        let permission;
+        let allowed;
+        try {
+            permission = await this.traceClient.getPermission();
+            allowed = await this.traceClient.canPerformAction(action);
+        } catch (error) {
+            console.error("TRACE Query Error:", error);
+            if (error.code === "WRONG_NETWORK" || error.message === "WRONG_NETWORK") {
+                throw error;
+            }
+            return {
+                success: false,
+                status: "TRACE_UNAVAILABLE"
+            };
+        }
 
+        // 4. Permission Enforced Authorization Check
         if (!allowed) {
-            // Determine minimum permission required for this action
             let requiredPermission = "FULL";
             if (action === "SEND_MESSAGE" || action === "SCHEDULE_MEETING") {
                 requiredPermission = "RESTRICTED";
             }
-
             return {
                 success: false,
                 agent: "Mira",
@@ -69,7 +81,6 @@ export class MiraAgent {
                 action: action,
                 permission: permission,
                 status: "BLOCKED",
-                message: "Action blocked by TRACE",
                 requiredPermission: requiredPermission
             };
         }
@@ -77,8 +88,20 @@ export class MiraAgent {
         // Action is allowed by TRACE, so we can now execute it
         const log = this.executeSimulation(action);
 
-        // Submit the attestation to the blockchain
-        const attestationResult = await this.traceClient.attestAction(action);
+        // 5. Attestation submission with TRACE_UNAVAILABLE fail-safe
+        let attestationResult;
+        try {
+            attestationResult = await this.traceClient.attestAction(action);
+        } catch (error) {
+            console.error("TRACE Attest Error:", error);
+            if (error.code === "WRONG_NETWORK" || error.message === "WRONG_NETWORK") {
+                throw error;
+            }
+            return {
+                success: false,
+                status: "TRACE_UNAVAILABLE"
+            };
+        }
 
         return {
             success: true,

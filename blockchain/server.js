@@ -9,6 +9,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Security: Catch malformed JSON payloads and fail safely without leaking details
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).json({ success: false, error: "Malformed JSON payload." });
+    }
+    next();
+});
+
 let traceClient;
 let mira;
 
@@ -74,7 +82,7 @@ app.get("/api/trace/status", async (req, res) => {
             network: networkInfo.name
         });
     } catch (error) {
-        console.error("GET /api/trace/status error:", error);
+        console.error("GET /api/trace/status error:", error.message);
         res.status(500).json({ success: false, error: "FAILED_TO_GET_STATUS" });
     }
 });
@@ -89,7 +97,7 @@ app.post("/api/trace/heartbeat", async (req, res) => {
         const result = await traceClient.heartbeat();
         res.json(result);
     } catch (error) {
-        console.error("POST /api/trace/heartbeat error:", error);
+        console.error("POST /api/trace/heartbeat error:", error.message);
         if (error.code === "WRONG_NETWORK" || error.message === "WRONG_NETWORK") {
             return res.status(400).json({
                 success: false,
@@ -105,19 +113,44 @@ app.post("/api/trace/heartbeat", async (req, res) => {
 /**
  * POST /api/mira/request
  * Evaluates natural-language request via Mira agent, checks permission, and signs attestation.
- * SECURITY: Handles network safety validations.
+ * SECURITY: Incorporates request presence, type, length validation, and network safety.
  */
 app.post("/api/mira/request", async (req, res) => {
     const { request } = req.body;
-    if (!request) {
+    
+    // INPUT VALIDATION: Ensure exists
+    if (request === undefined || request === null) {
         return res.status(400).json({ success: false, error: "Missing 'request' in body." });
     }
     
+    // INPUT VALIDATION: Must be string
+    if (typeof request !== "string") {
+        return res.status(400).json({ success: false, error: "Parameter 'request' must be a string." });
+    }
+    
+    // INPUT VALIDATION: Cannot be empty
+    const trimmed = request.trim();
+    if (trimmed === "") {
+        return res.status(400).json({ success: false, error: "Parameter 'request' cannot be empty." });
+    }
+    
+    // INPUT VALIDATION: Enforce maximum length safety limit
+    if (trimmed.length > 2000) {
+        return res.status(400).json({ success: false, error: "Parameter 'request' exceeds maximum allowed length." });
+    }
+    
     try {
-        const result = await mira.processRequest(request);
+        const result = await mira.processRequest(trimmed);
+        if (result.status === "UNKNOWN") {
+            return res.json({
+                success: false,
+                action: "UNKNOWN_ACTION",
+                status: "UNKNOWN_ACTION"
+            });
+        }
         res.json(result);
     } catch (error) {
-        console.error("POST /api/mira/request error:", error);
+        console.error("POST /api/mira/request error:", error.message);
         if (error.code === "WRONG_NETWORK" || error.message === "WRONG_NETWORK") {
             return res.status(400).json({
                 success: false,
@@ -126,7 +159,7 @@ app.post("/api/mira/request", async (req, res) => {
                 actualChainId: error.actualChainId
             });
         }
-        res.status(500).json({ success: false, error: error.message || "FAILED_TO_PROCESS_REQUEST" });
+        res.status(500).json({ success: false, error: "FAILED_TO_PROCESS_REQUEST" });
     }
 });
 
@@ -139,7 +172,7 @@ app.get("/api/trace/attestations", async (req, res) => {
         const attestations = await traceClient.getAttestations();
         res.json(attestations);
     } catch (error) {
-        console.error("GET /api/trace/attestations error:", error);
+        console.error("GET /api/trace/attestations error:", error.message);
         res.status(500).json({ success: false, error: "FAILED_TO_GET_ATTESTATIONS" });
     }
 });
@@ -150,5 +183,5 @@ init().then(() => {
         console.log(`TRACE API Server running on port ${PORT}`);
     });
 }).catch(err => {
-    console.error("Failed to initialize server:", err);
+    console.error("Failed to initialize server:", err.message);
 });

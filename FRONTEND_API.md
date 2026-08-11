@@ -117,12 +117,9 @@ Processes a natural-language query via the Mira client-operations agent. Mira cl
   {
     "success": true,
     "agent": "Mira",
-    "request": "Send a reminder to the client",
     "action": "SEND_MESSAGE",
     "permission": "FULL",
     "status": "VERIFIED",
-    "message": "Action executed and attested on-chain",
-    "executionLog": "Mira sent the client message.",
     "transactionHash": "0xdbb0a759d3fd9dd73c50fb5f7b2ec71b8ae45fbcdc6f56d496b9da6b30e96010"
   }
   ```
@@ -131,12 +128,33 @@ Processes a natural-language query via the Mira client-operations agent. Mira cl
   {
     "success": false,
     "agent": "Mira",
-    "request": "Approve the invoice",
     "action": "APPROVE_INVOICE",
     "permission": "RESTRICTED",
-    "status": "BLOCKED",
-    "message": "Action blocked by TRACE",
-    "requiredPermission": "FULL"
+    "status": "BLOCKED"
+  }
+  ```
+* **Success Response - Unknown Action (200 OK)**:
+  ```json
+  {
+    "success": false,
+    "action": "UNKNOWN_ACTION",
+    "status": "UNKNOWN_ACTION"
+  }
+  ```
+* **Error/Fail-safe Response - LLM API Failure (200 OK)**:
+  *If the Gemini LLM API is unavailable, the backend fails safely and rejects automatically.*
+  ```json
+  {
+    "success": false,
+    "status": "LLM_UNAVAILABLE"
+  }
+  ```
+* **Error/Fail-safe Response - Blockchain/TRACE Contract Failure (200 OK)**:
+  *If the local RPC node or the deployed TRACE contract is offline, the backend fails safely.*
+  ```json
+  {
+    "success": false,
+    "status": "TRACE_UNAVAILABLE"
   }
   ```
 * **Error Response - Network Mismatch (400 Bad Request)**:
@@ -146,17 +164,6 @@ Processes a natural-language query via the Mira client-operations agent. Mira cl
     "status": "WRONG_NETWORK",
     "expectedChainId": 80002,
     "actualChainId": 31337
-  }
-  ```
-* **Error/Fail-safe Response - LLM API Failure (200 OK)**:
-  *If the Gemini LLM API is unavailable, the backend fails safely and rejects automatically.*
-  ```json
-  {
-    "success": false,
-    "agent": "Mira",
-    "request": "Send a reminder to the client",
-    "status": "LLM_UNAVAILABLE",
-    "message": "LLM API is currently unavailable."
   }
   ```
 

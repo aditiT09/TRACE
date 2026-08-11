@@ -6,7 +6,7 @@ TRACE is a security infrastructure layer that bridges autonomous AI actions and 
 
 ---
 
-## Architecture Flow
+## Technical Architecture
 
 ```
                     USER
@@ -42,31 +42,23 @@ TRACE is a security infrastructure layer that bridges autonomous AI actions and 
 
 ---
 
-## Network Safety & Chain IDs
+## Security Protocol & Validation
 
-To prevent execution on unintended networks, the TRACE API performs strict validation check on the blockchain network before executing write transactions (`heartbeat` or `attestAction`).
-* **Expected Chain ID** is loaded from the environment variable `EXPECTED_CHAIN_ID`.
-  * **Local Hardhat Network**: `31337`
-  * **Polygon Amoy Testnet**: `80002`
-* If a mismatch is detected, the API returns:
-  ```json
-  {
-      "success": false,
-      "status": "WRONG_NETWORK",
-      "expectedChainId": 80002,
-      "actualChainId": 31337
-  }
-  ```
+1. **Smart Contract as Authority**: The smart contract remains the ultimate authority. The LLM is only an action classifier and has zero permissioning or transaction execution capability.
+2. **Network Validation Safety**: Before executing write transactions (`heartbeat` or `attestAction`), the API checks the chain ID against `EXPECTED_CHAIN_ID`.
+   * **Local Node**: `31337`
+   * **Polygon Amoy**: `80002`
+   * If a mismatch occurs, the transaction is rejected and the server returns a `WRONG_NETWORK` error.
+3. **API Input Hardening**: String presence, empty check, and maximum length checks are enforced on `POST /api/mira/request` to protect from buffer/DOS exploits. Malformed JSON returns a clean error payload.
+4. **Secret Sandboxing**: Private keys, mnemonics, and Gemini API keys are completely protected and never returned by the API or committed to repository branches.
 
 ---
 
 ## API Endpoints
 
-The TRACE API is exposed via a local Node.js Express server running on port `3001` (by default):
-
 * **`GET /api/trace/status`**: Returns owner/agent addresses, network, contract address, current permission level, last heartbeat timestamp, and inactive duration.
 * **`POST /api/trace/heartbeat`**: Signs and executes the contract owner's `heartbeat()` transaction to restore permissions to `FULL`.
-* **`POST /api/mira/request`**: Submits a natural-language request to the Mira agent. Mira classifies the request, checks permissions via the contract, simulates execution if allowed, and registers an on-chain attestation.
+* **`POST /api/mira/request`**: Submits a natural-language request. Mira classifies the request, checks permissions via the contract, simulates execution if allowed, and registers an on-chain attestation.
 * **`GET /api/trace/attestations`**: Queries `ActionAttested` events directly from the blockchain logs.
 
 ---
@@ -78,15 +70,6 @@ Copy `.env.example` to `.env` and fill in the parameters:
 ```bash
 cp .env.example .env
 ```
-
-Environment variables:
-* `EXPECTED_CHAIN_ID`: The chain ID to enforce (e.g. `31337` for local, `80002` for Polygon Amoy).
-* `PRIVATE_KEY`: Deployment private key (for Polygon Amoy deployment).
-* `POLYGON_AMOY_RPC_URL`: RPC provider URL for Polygon Amoy.
-* `TRACE_AGENT_ADDRESS`: The wallet address of the AI Agent (MetaMask or Account #1).
-* `TRACE_CONTRACT_ADDRESS`: The address of the deployed contract.
-* `LLM_API_KEY`: Google Gemini API Key (Optional. Falls back to `MockLlmParser` if not set).
-* `LLM_MODEL`: LLM model name (default: `gemini-1.5-flash`).
 
 ### 2. Run Local Blockchain & Deploy
 Start a local Hardhat JSON-RPC network node:
@@ -110,24 +93,19 @@ $env:EXPECTED_CHAIN_ID="31337"; npx hardhat run server.js --network localhost
 
 ---
 
-## Polygon Amoy Testnet Deployment
+## Polygon Amoy Testnet Status
 
-To deploy to the Polygon Amoy testnet:
-1. Configure your `PRIVATE_KEY` and `POLYGON_AMOY_RPC_URL` using Hardhat variables:
-   ```bash
-   npx hardhat vars set PRIVATE_KEY
-   npx hardhat vars set POLYGON_AMOY_RPC_URL
-   ```
-2. Run the deployment script:
-   ```bash
-   npx hardhat run scripts/deployTrace.js --network polygonAmoy
-   ```
+* **Status**: Ready for production deployment; live deployment pending testnet credentials.
+* To deploy once testnet funds and RPC configurations are ready:
+  ```bash
+  npx hardhat run scripts/deployTrace.js --network polygonAmoy
+  ```
 
 ---
 
 ## Testing
 
-To run the complete test suite (80 tests including Solidity, Agent unit tests, LLM mock parsing, integration security tests, and network safety tests):
+To run the complete test suite (87 tests including Solidity, Agent unit tests, LLM mock parsing, integration security tests, network safety, and end-to-end scenarios):
 ```bash
 npx hardhat test
 ```
