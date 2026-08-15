@@ -14,9 +14,9 @@
   justify-content: center;
   padding: 48px;
   background:
-    radial-gradient(120% 90% at 15% 15%, rgba(198, 227, 133, 0.10), transparent 60%),
-    linear-gradient(160deg, #180a04 0%, #1F0E06 55%, #2A1509 100%);
-  border-right: 1px solid rgba(245, 241, 232, 0.06);
+    radial-gradient(120% 90% at 15% 15%, rgba(179, 176, 96, 0.10), transparent 60%),
+    var(--color-bg);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .auth-brand-inner {
@@ -44,7 +44,7 @@
   stroke-dasharray: 340;
   stroke-dashoffset: 340;
   animation: draw 1.8s var(--ease) forwards, pulse 3.2s ease-in-out 2s infinite;
-  filter: drop-shadow(0 0 6px rgba(198, 227, 133, 0.55));
+  filter: drop-shadow(0 0 6px rgba(179, 176, 96, 0.55));
 }
 
 .trace-dot {
@@ -56,8 +56,8 @@
   to { stroke-dashoffset: 0; }
 }
 @keyframes pulse {
-  0%, 100% { filter: drop-shadow(0 0 6px rgba(198, 227, 133, 0.5)); }
-  50% { filter: drop-shadow(0 0 14px rgba(198, 227, 133, 0.9)); }
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(179, 176, 96, 0.5)); }
+  50% { filter: drop-shadow(0 0 14px rgba(179, 176, 96, 0.9)); }
 }
 @keyframes dotIn {
   to { opacity: 1; }
@@ -80,7 +80,7 @@
   height: 480px;
   right: -220px;
   bottom: -220px;
-  background: radial-gradient(circle, rgba(198, 227, 133, 0.14) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(179, 176, 96, 0.14) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -96,7 +96,7 @@
   width: 100%;
   max-width: 420px;
   background: var(--color-panel);
-  border: 1px solid rgba(245, 241, 232, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
   padding: 40px 36px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
@@ -150,7 +150,7 @@
 .field-input {
   width: 100%;
   background: var(--color-bg-soft);
-  border: 1px solid rgba(245, 241, 232, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
   padding: 13px 16px;
   color: var(--color-cream);
@@ -160,18 +160,18 @@
 }
 
 .field-input::placeholder {
-  color: rgba(245, 241, 232, 0.35);
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .field-input:hover {
-  border-color: rgba(245, 241, 232, 0.22);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .field-input:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(198, 227, 133, 0.18);
-  background: rgba(198, 227, 133, 0.04);
+  box-shadow: 0 0 0 3px rgba(179, 176, 96, 0.18);
+  background: rgba(179, 176, 96, 0.04);
 }
 
 .field-password {
@@ -202,7 +202,7 @@
 
 .field-toggle:hover {
   color: var(--color-accent);
-  background: rgba(198, 227, 133, 0.08);
+  background: rgba(179, 176, 96, 0.08);
 }
 
 .field-error {
@@ -263,7 +263,7 @@
 }
 
 .btn-primary:hover {
-  box-shadow: 0 0 0 1px rgba(198, 227, 133, 0.3), 0 0 24px rgba(198, 227, 133, 0.45);
+  box-shadow: 0 0 0 1px rgba(179, 176, 96, 0.3), 0 0 24px rgba(179, 176, 96, 0.45);
   transform: translateY(-1px);
 }
 
@@ -272,7 +272,7 @@
 }
 
 .btn-primary:disabled {
-  background: rgba(198, 227, 133, 0.35);
+  background: rgba(179, 176, 96, 0.35);
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
@@ -303,13 +303,13 @@
   height: 4px;
   flex: 1;
   border-radius: 2px;
-  background: rgba(245, 241, 232, 0.12);
+  background: rgba(255, 255, 255, 0.12);
   transition: background 0.25s var(--ease);
 }
 
-.strength-bar.is-filled.level-1 { background: #E37B7B; }
-.strength-bar.is-filled.level-2 { background: #E3B97B; }
-.strength-bar.is-filled.level-3 { background: #D9E37B; }
+.strength-bar.is-filled.level-1 { background: rgba(179, 176, 96, 0.35); }
+.strength-bar.is-filled.level-2 { background: rgba(179, 176, 96, 0.6); }
+.strength-bar.is-filled.level-3 { background: rgba(179, 176, 96, 0.85); }
 .strength-bar.is-filled.level-4 { background: var(--color-accent); }
 
 .strength-label {
@@ -343,7 +343,7 @@
   height: 19px;
   margin-top: 1px;
   border-radius: 5px;
-  border: 1.5px solid rgba(245, 241, 232, 0.3);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -384,7 +384,7 @@
   .auth-brand {
     padding: 32px 24px;
     border-right: none;
-    border-bottom: 1px solid rgba(245, 241, 232, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     min-height: 220px;
   }
 

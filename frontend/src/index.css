@@ -1,23 +1,23 @@
 :root {
-  --color-bg: #1F0E06;
-  --color-bg-soft: #2A1509;
-  --color-panel: #3A2418;
-  --color-panel-soft: #4A2F1F;
-  --color-accent: #C6E385;
-  --color-accent-dim: #a9c96a;
-  --color-cream: #F5F1E8;
-  --color-cream-dim: rgba(245, 241, 232, 0.6);
-  --color-danger: #E37B7B;
-  --color-good: #C6E385;
+  --color-bg: #406B54;
+  --color-bg-soft: rgba(255, 255, 255, 0.05);
+  --color-panel: rgba(255, 255, 255, 0.06);
+  --color-panel-soft: rgba(255, 255, 255, 0.09);
+  --color-accent: #B3B060;
+  --color-accent-dim: rgba(179, 176, 96, 0.7);
+  --color-cream: #FFFFFF;
+  --color-cream-dim: rgba(255, 255, 255, 0.6);
+  --color-danger: #B3B060;
+  --color-good: #B3B060;
 
-  --font-display: "Unbounded", "Red Hat Display", sans-serif;
-  --font-body: "Red Hat Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Helvetica", Arial, FreeSans, Garuda, sans-serif;
+  --font-body: "Helvetica", Arial, FreeSans, Garuda, sans-serif;
 
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 10px;
 
-  --shadow-glow: 0 0 0 1px rgba(198, 227, 133, 0.08), 0 0 32px rgba(198, 227, 133, 0.10);
+  --shadow-glow: 0 0 0 1px rgba(179, 176, 96, 0.08), 0 0 32px rgba(179, 176, 96, 0.10);
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
