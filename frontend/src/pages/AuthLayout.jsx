@@ -15,11 +15,11 @@ function TraceMark() {
       <path
         className="trace-path"
         d="M8 96C28 44 50 18 78 18C106 18 110 70 138 70C160 70 168 34 190 34C202 34 208 50 212 60"
-        stroke="#B3B060"
+        stroke="#C6E385"
         strokeWidth="3"
         strokeLinecap="round"
       />
-      <circle className="trace-dot" cx="212" cy="60" r="4" fill="#B3B060" />
+      <circle className="trace-dot" cx="212" cy="60" r="4" fill="#C6E385" />
     </svg>
   )
 }
@@ -105,7 +105,7 @@ export function Checkbox({ id, checked, onChange, children }) {
       <input id={id} type="checkbox" checked={checked} onChange={onChange} required />
       <span className="checkbox-box" aria-hidden="true">
         <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-          <path d="M1 5l3.5 3.5L11 1" stroke="#406B54" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M1 5l3.5 3.5L11 1" stroke="#1F0E06" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </span>
       <span className="checkbox-label">{children}</span>
