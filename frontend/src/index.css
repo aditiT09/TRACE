@@ -1,0 +1,77 @@
+:root {
+  --color-bg: #1F0E06;
+  --color-bg-soft: #2A1509;
+  --color-panel: #3A2418;
+  --color-panel-soft: #4A2F1F;
+  --color-accent: #C6E385;
+  --color-accent-dim: #a9c96a;
+  --color-cream: #F5F1E8;
+  --color-cream-dim: rgba(245, 241, 232, 0.6);
+  --color-danger: #E37B7B;
+  --color-good: #C6E385;
+
+  --font-display: "Unbounded", "Red Hat Display", sans-serif;
+  --font-body: "Red Hat Display", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  --shadow-glow: 0 0 0 1px rgba(198, 227, 133, 0.08), 0 0 32px rgba(198, 227, 133, 0.10);
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-cream);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

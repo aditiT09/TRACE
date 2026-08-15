@@ -1,0 +1,414 @@
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  background: var(--color-bg);
+}
+
+/* ---------- Brand panel ---------- */
+.auth-brand {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background:
+    radial-gradient(120% 90% at 15% 15%, rgba(198, 227, 133, 0.10), transparent 60%),
+    linear-gradient(160deg, #180a04 0%, #1F0E06 55%, #2A1509 100%);
+  border-right: 1px solid rgba(245, 241, 232, 0.06);
+}
+
+.auth-brand-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 380px;
+  text-align: left;
+}
+
+.brand-wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 4vw, 3.2rem);
+  letter-spacing: 0.06em;
+  color: var(--color-cream);
+}
+
+.trace-mark {
+  width: 220px;
+  height: auto;
+  margin: 20px 0 24px;
+}
+
+.trace-path {
+  stroke-dasharray: 340;
+  stroke-dashoffset: 340;
+  animation: draw 1.8s var(--ease) forwards, pulse 3.2s ease-in-out 2s infinite;
+  filter: drop-shadow(0 0 6px rgba(198, 227, 133, 0.55));
+}
+
+.trace-dot {
+  opacity: 0;
+  animation: dotIn 0.4s ease-out 1.7s forwards, dotPulse 2.4s ease-in-out 2.1s infinite;
+}
+
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes pulse {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(198, 227, 133, 0.5)); }
+  50% { filter: drop-shadow(0 0 14px rgba(198, 227, 133, 0.9)); }
+}
+@keyframes dotIn {
+  to { opacity: 1; }
+}
+@keyframes dotPulse {
+  0%, 100% { r: 4; opacity: 1; }
+  50% { r: 6; opacity: 0.65; }
+}
+
+.brand-tagline {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--color-cream-dim);
+  max-width: 320px;
+}
+
+.brand-glow {
+  position: absolute;
+  width: 480px;
+  height: 480px;
+  right: -220px;
+  bottom: -220px;
+  background: radial-gradient(circle, rgba(198, 227, 133, 0.14) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ---------- Main / form panel ---------- */
+.auth-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-panel);
+  border: 1px solid rgba(245, 241, 232, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 40px 36px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.auth-card-head {
+  margin-bottom: 28px;
+}
+
+.auth-eyebrow {
+  display: inline-block;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: 10px;
+}
+
+.auth-title {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 600;
+  color: var(--color-cream);
+}
+
+.auth-subtitle {
+  margin-top: 8px;
+  font-size: 0.94rem;
+  color: var(--color-cream-dim);
+}
+
+/* ---------- Form ---------- */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-cream-dim);
+}
+
+.field-input {
+  width: 100%;
+  background: var(--color-bg-soft);
+  border: 1px solid rgba(245, 241, 232, 0.12);
+  border-radius: var(--radius-md);
+  padding: 13px 16px;
+  color: var(--color-cream);
+  font-size: 0.96rem;
+  font-family: var(--font-body);
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.field-input::placeholder {
+  color: rgba(245, 241, 232, 0.35);
+}
+
+.field-input:hover {
+  border-color: rgba(245, 241, 232, 0.22);
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(198, 227, 133, 0.18);
+  background: rgba(198, 227, 133, 0.04);
+}
+
+.field-password {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.field-password .field-input {
+  padding-right: 44px;
+}
+
+.field-toggle {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--color-cream-dim);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.field-toggle:hover {
+  color: var(--color-accent);
+  background: rgba(198, 227, 133, 0.08);
+}
+
+.field-error {
+  font-size: 0.8rem;
+  color: var(--color-danger);
+  margin-top: -8px;
+}
+
+.auth-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.link-muted {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.84rem;
+  color: var(--color-cream-dim);
+  cursor: pointer;
+  transition: color 0.2s var(--ease);
+}
+
+.link-muted:hover {
+  color: var(--color-accent);
+}
+
+.link-accent {
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 600;
+  color: var(--color-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link-accent:hover {
+  color: var(--color-accent-dim);
+}
+
+/* ---------- Buttons ---------- */
+.btn-primary {
+  margin-top: 6px;
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-accent);
+  color: var(--color-bg);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.98rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 0 1px rgba(198, 227, 133, 0.3), 0 0 24px rgba(198, 227, 133, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  background: rgba(198, 227, 133, 0.35);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.auth-switch {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--color-cream-dim);
+}
+
+/* ---------- Password strength ---------- */
+.strength {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: -6px;
+}
+
+.strength-bars {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.strength-bar {
+  height: 4px;
+  flex: 1;
+  border-radius: 2px;
+  background: rgba(245, 241, 232, 0.12);
+  transition: background 0.25s var(--ease);
+}
+
+.strength-bar.is-filled.level-1 { background: #E37B7B; }
+.strength-bar.is-filled.level-2 { background: #E3B97B; }
+.strength-bar.is-filled.level-3 { background: #D9E37B; }
+.strength-bar.is-filled.level-4 { background: var(--color-accent); }
+
+.strength-label {
+  font-size: 0.78rem;
+  color: var(--color-cream-dim);
+  min-width: 70px;
+  text-align: right;
+}
+
+/* ---------- Checkbox ---------- */
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--color-cream-dim);
+  line-height: 1.5;
+}
+
+.checkbox input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkbox-box {
+  flex-shrink: 0;
+  width: 19px;
+  height: 19px;
+  margin-top: 1px;
+  border-radius: 5px;
+  border: 1.5px solid rgba(245, 241, 232, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s var(--ease), border-color 0.18s var(--ease);
+}
+
+.checkbox input:checked + .checkbox-box {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.checkbox input:focus-visible + .checkbox-box {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.checkbox-box svg {
+  opacity: 0;
+  transition: opacity 0.15s var(--ease);
+}
+
+.checkbox input:checked + .checkbox-box svg {
+  opacity: 1;
+}
+
+.checkbox a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .auth-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-brand {
+    padding: 32px 24px;
+    border-right: none;
+    border-bottom: 1px solid rgba(245, 241, 232, 0.06);
+    min-height: 220px;
+  }
+
+  .trace-mark {
+    width: 160px;
+    margin: 14px 0 16px;
+  }
+
+  .brand-tagline {
+    display: none;
+  }
+
+  .brand-wordmark {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 30px 22px;
+    border-radius: var(--radius-md);
+  }
+
+  .auth-main {
+    padding: 20px 16px 40px;
+  }
+}
