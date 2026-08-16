@@ -133,39 +133,6 @@ Processes a natural-language query via the Mira client-operations agent. Mira cl
     "status": "BLOCKED"
   }
   ```
-* **Success Response - Unknown Action (200 OK)**:
-  ```json
-  {
-    "success": false,
-    "action": "UNKNOWN_ACTION",
-    "status": "UNKNOWN_ACTION"
-  }
-  ```
-* **Error/Fail-safe Response - LLM API Failure (200 OK)**:
-  *If the Gemini LLM API is unavailable, the backend fails safely and rejects automatically.*
-  ```json
-  {
-    "success": false,
-    "status": "LLM_UNAVAILABLE"
-  }
-  ```
-* **Error/Fail-safe Response - Blockchain/TRACE Contract Failure (200 OK)**:
-  *If the local RPC node or the deployed TRACE contract is offline, the backend fails safely.*
-  ```json
-  {
-    "success": false,
-    "status": "TRACE_UNAVAILABLE"
-  }
-  ```
-* **Error Response - Network Mismatch (400 Bad Request)**:
-  ```json
-  {
-    "success": false,
-    "status": "WRONG_NETWORK",
-    "expectedChainId": 80002,
-    "actualChainId": 31337
-  }
-  ```
 
 ---
 
@@ -198,8 +165,62 @@ Reads historical `ActionAttested` logs directly from the blockchain contract eve
 
 ---
 
-## Security Protocol
+## API Error States
 
-1. **Smart Contract as Authority**: Do not cache permission values or rely on front-end validations. All states (like `permission` and `canPerformAction`) are fetched directly from the deployed contract.
-2. **Private Keys & API Secrets**: Do not expose any backend environment secrets (like private keys or Gemini API keys) to the client web browser.
-3. **Verification Order**: Only trigger UI confirmation states once a transaction receipt `status` returns successfully.
+### 1. `INVALID_REQUEST` (400 Bad Request)
+Returned when payload parameters are missing or violate length/type validations.
+* **Missing Property**: `{"success":false,"error":"Missing 'request' in body."}`
+* **Wrong Type**: `{"success":false,"error":"Parameter 'request' must be a string."}`
+* **Empty string**: `{"success":false,"error":"Parameter 'request' cannot be empty."}`
+* **Length Exceeded** (>2000 chars): `{"success":false,"error":"Parameter 'request' exceeds maximum allowed length."}`
+* **Malformed JSON Syntax**: `{"success":false,"error":"Malformed JSON payload."}`
+
+### 2. `UNKNOWN_ACTION` (200 OK)
+Returned when Mira classifies the user request as unsupported or un-mappable.
+```json
+{
+  "success": false,
+  "action": "UNKNOWN_ACTION",
+  "status": "UNKNOWN_ACTION"
+}
+```
+
+### 3. `LLM_UNAVAILABLE` (200 OK)
+Returned when Gemini API calls fail or return unexpected formats.
+```json
+{
+  "success": false,
+  "status": "LLM_UNAVAILABLE"
+}
+```
+
+### 4. `TRACE_UNAVAILABLE` (200 OK)
+Returned when connection to the smart contract or local RPC node goes offline.
+```json
+{
+  "success": false,
+  "status": "TRACE_UNAVAILABLE"
+}
+```
+
+### 5. `WRONG_NETWORK` (400 Bad Request)
+Returned when the backend node's chain ID does not match the active `EXPECTED_CHAIN_ID` configuration.
+```json
+{
+  "success": false,
+  "status": "WRONG_NETWORK",
+  "expectedChainId": 80002,
+  "actualChainId": 31337
+}
+```
+
+---
+
+## Security Integration Rules
+
+> [!IMPORTANT]
+> To preserve the security guarantees of the TRACE permission engine, the React frontend must follow these constraints:
+>
+> 1. **No Client Authorization Decision**: The frontend must never supply or override parameters like `permission`, `owner`, `agent`, or `authorization status`. These must come strictly from backend contract queries.
+> 2. **Private Key & API Key Sandbox**: The frontend must never handle raw wallet private keys, seeds, mnemonics, or Gemini API keys.
+> 3. **Verification Integrity**: A transaction or operation state must only be shown as verified if a successful `transactionHash` is returned from the API, confirming the action was attested on the blockchain.
