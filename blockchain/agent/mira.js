@@ -30,7 +30,10 @@ export class MiraAgent {
                 // If LLM API is unavailable, fail-safe. Do not execute or bypass.
                 return {
                     success: false,
-                    status: "LLM_UNAVAILABLE"
+                    status: "LLM_UNAVAILABLE",
+                    decision: "BLOCKED",
+                    attestation: null,
+                    reason: "Mira LLM service is temporarily unavailable."
                 };
             }
         } else {
@@ -47,7 +50,10 @@ export class MiraAgent {
                 request: request,
                 action: "UNKNOWN_ACTION",
                 status: "UNKNOWN",
-                message: "Mira could not map the request to a supported action."
+                message: "Mira could not map the request to a supported action.",
+                decision: "BLOCKED",
+                attestation: null,
+                reason: "Unknown or unsupported action."
             };
         }
 
@@ -64,11 +70,15 @@ export class MiraAgent {
             }
             return {
                 success: false,
-                status: "TRACE_UNAVAILABLE"
+                status: "TRACE_UNAVAILABLE",
+                decision: "BLOCKED",
+                attestation: null,
+                reason: "TRACE contract query failed or contract is offline."
             };
         }
 
         // 4. Permission Enforced Authorization Check
+        const permissions = ["LOCKED", "READ_ONLY", "RESTRICTED", "FULL"];
         if (!allowed) {
             let requiredPermission = "FULL";
             if (action === "SEND_MESSAGE" || action === "SCHEDULE_MEETING") {
@@ -80,8 +90,12 @@ export class MiraAgent {
                 request: request,
                 action: action,
                 permission: permission,
+                permissionValue: permissions.indexOf(permission),
                 status: "BLOCKED",
-                requiredPermission: requiredPermission
+                requiredPermission: requiredPermission,
+                decision: "BLOCKED",
+                attestation: null,
+                reason: `${action} requires ${requiredPermission} authority. Current authority: ${permission}.`
             };
         }
 
@@ -99,7 +113,10 @@ export class MiraAgent {
             }
             return {
                 success: false,
-                status: "TRACE_UNAVAILABLE"
+                status: "TRACE_UNAVAILABLE",
+                decision: "BLOCKED",
+                attestation: null,
+                reason: "Attestation transaction failed or network is offline."
             };
         }
 
@@ -109,10 +126,17 @@ export class MiraAgent {
             request: request,
             action: action,
             permission: permission,
+            permissionValue: permissions.indexOf(permission),
             status: "VERIFIED",
             message: "Action executed and attested on-chain",
             executionLog: log,
-            transactionHash: attestationResult.transactionHash
+            transactionHash: attestationResult.transactionHash,
+            decision: "ALLOWED",
+            reason: `Action permitted under ${permission} authority.`,
+            attestation: {
+                verified: true,
+                transactionHash: attestationResult.transactionHash
+            }
         };
     }
 

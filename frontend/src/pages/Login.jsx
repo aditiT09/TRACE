@@ -9,6 +9,10 @@ export default function Login({ onSwitch }) {
     e.preventDefault()
     // TODO: wire up to auth API
     console.log('login', { email, password })
+    // Temporary: skip straight to the dashboard so the flow is testable
+    // before the real auth check exists. Replace with onSwitch('dashboard')
+    // only after a successful API response.
+    onSwitch('dashboard')
   }
 
   return (

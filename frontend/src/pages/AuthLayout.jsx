@@ -3,10 +3,10 @@ import './auth.css'
 
 /* Signature element: an animated trace-path — the wordmark's stroke draws
    itself in on load and pulses gently, literalizing "TRACE". */
-function TraceMark() {
+export function TraceMark({ className = 'trace-mark' }) {
   return (
     <svg
-      className="trace-mark"
+      className={className}
       viewBox="0 0 220 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

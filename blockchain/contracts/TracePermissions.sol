@@ -16,9 +16,9 @@ contract TracePermissions {
     uint256 public lastHeartbeat;
 
     // Demo decay times
-    uint256 public constant FULL_DURATION = 2 minutes;
-    uint256 public constant RESTRICTED_DURATION = 4 minutes;
-    uint256 public constant READ_ONLY_DURATION = 6 minutes;
+    uint256 public constant FULL_DURATION = 60;
+    uint256 public constant RESTRICTED_DURATION = 180;
+    uint256 public constant READ_ONLY_DURATION = 360;
 
     // =========================================================
     // EVENTS
